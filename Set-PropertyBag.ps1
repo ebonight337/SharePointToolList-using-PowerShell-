@@ -50,7 +50,6 @@ Function Get-SiteContext ($strUrl, $objCred)  {
 Function Set-PropertyBag($objCtx, $Key, $Value){
 
     $objCtx.Web.AllProperties[$Key] = $Value
-    $targetTeam = $targetList.TeamsName
     try{
         $objCtx.Web.Update()
         $objCtx.ExecuteQuery()
