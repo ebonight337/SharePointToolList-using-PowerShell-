@@ -1,5 +1,6 @@
 ###################################################
 # Teamsに紐づくチームサイトを取得します。
+# https://blogs.technet.microsoft.com/teamsjp/2018/02/28/get-teamlist/
 ###################################################
 Function GetTeamsSite(){
     $Credential = Get-Credential
