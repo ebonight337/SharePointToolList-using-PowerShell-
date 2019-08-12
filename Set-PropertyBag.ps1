@@ -1,3 +1,9 @@
+Param(
+    [string]$targetSite = "https://hogehuga.sharepoint.com/sites/test1",
+    [string]$registKey = "key",
+    [string]$registVal = "val"
+)
+
 # コンポーネント読み込み
 Function Load-Module () {
     if((test-path "C:\Program Files\Common Files\microsoft shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.dll") -and (test-path "C:\Program Files\Common Files\microsoft shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.Runtime.dll")){
@@ -14,6 +20,7 @@ Function Load-Module () {
 Function Get-Cred () {
     try{
 	    $objCredential = Get-Credential
+        $objCredential = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials ($objCredential.UserName, $objCredential.Password)
     }catch{
         Write-Host "認証情報の取得に失敗しました。"
         return
@@ -34,16 +41,15 @@ Function Get-SiteContext ($strUrl, $objCred)  {
 		$objContext.ExecuteQuery()
 		return $objContext
 	} catch {
-		Write-Host"SharePoint '$strUrl' サイトの接続に失敗しました。"
+		Write-Host "SharePoint サイトの接続に失敗しました。"
 		return $null
 	}
 }
 
 #プロパティバッグの登録
-Function Set-PropertyBag($objCtx, $targetList){
+Function Set-PropertyBag($objCtx, $Key, $Value){
 
-    $objCtx.Web.AllProperties["Expiration"] = $targetList.Expiration
-    $objCtx.Web.AllProperties["Operator"] = $targetList.Operator
+    $objCtx.Web.AllProperties[$Key] = $Value
     $targetTeam = $targetList.TeamsName
     try{
         $objCtx.Web.Update()
@@ -56,41 +62,27 @@ Function Set-PropertyBag($objCtx, $targetList){
 }
 
 # メイン処理
-Function Start-Process () {
+Function Start-Process ($targetSite) {
     # コンポーネント読み込み
     $mod = Load-Module
     if ($mod -eq $false) {
-		    return
-	  }
+	return
+    }
 
     # 認証情報の取得
     $objCred = Get-Cred
     if($objCred -eq $null){
         return
     }
-    
-    # Exchange接続
-    $defaultCred = Get-ExOCred
-    $connectExO = Connect-Exchange $defaultCred
-    if($connectExO -eq $false){
-        return
-    }
-    
-    # O365グループオブジェクト取得
-    $o365Groups = Get-UnifiedGroup -ResultSize Unlimited
 
-    # CSVから1行ずつ処理
     # サイト コンテキストの取得
-    foreach($target in $csvFile){
-        $targetGroup = $o365Groups | where{$_.PrimarySmtpAddress -eq $target.TeamsID}
-        $objCtx = Get-SiteContext $targetGroup.SharePointSiteUrl $objCred
-        if($objCtx -eq $null){
-            continue
-        }
-        #プロパティバッグの登録
-        $propBg = Set-PropertyBag $objCtx $target
-        if($propBg -eq $null){
-            continue
-        }
+    $objCtx = Get-SiteContext $targetSite $objCred
+
+    #プロパティバッグの登録
+    $propBg = Set-PropertyBag $objCtx $registKey $registVal
+    if($propBg -eq $null){
+        continue
     }
 }
+
+Start-Process $targetSite
