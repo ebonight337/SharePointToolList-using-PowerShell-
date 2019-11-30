@@ -1,11 +1,9 @@
 <#     
 説明
-	指定リストの以下の列情報をCSV出力します
-
+  指定リストの以下の列情報をCSV出力します
 例
-　.\Get-FieldSettings.ps1 -WebUrl https://[tenant].sharepoint.com/sites/xxxxx -ListTitle "リスト名"
+　.\Get-ColumnSettings.ps1 -WebUrl https://[tenant].sharepoint.com/sites/xxxxx -ListTitle "リスト名" -UserName "ユーザー名"
 #>
-
 
 # パラメータ定義
 [CmdletBinding()]
@@ -13,43 +11,36 @@ Param(
 	[Parameter(Mandatory=$true)]
 	[string]$WebUrl,
 	[Parameter(Mandatory=$true)]
-	[string]$ListTitle
+	[string]$ListTitle,
+	[Parameter(Mandatory=$true)]
+	[string]$UserName
 )
 
 Add-Type -Path "C:\Program Files\Common Files\microsoft shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.dll"
 Add-Type -Path "C:\Program Files\Common Files\microsoft shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.Runtime.dll"
 
-$ErrorActionPreference = "Stop"
-
-# 接続するユーザー名
-$global:cstrUserName = "ここにユーザー名"
-
 # 出力ファイルパス
-$global:cstrOutputFilePath = ".\out.csv"
+$global:cstrOutputFilePath = ".\${ListTitle}.csv"
 
 
 # メイン処理
-function Start-MailProcessing ($objCredentials) {
+function Get-ColumnFields ($objCredentials) {
 
-    # パスワード入力
     $strPassword = Read-Host -Prompt "Enter password" -AsSecureString
+    $objCred = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($UserName, $strPassword)
+    $ctx = New-Object Microsoft.SharePoint.Client.ClientContext($WebUrl);
+    $ctx.Credentials = $objCred;
+    $objSite = $ctx.Site;
+    $ctx.Load($objSite);
+    $ctx.ExecuteQuery();
+    
+    $objWeb = $ctx.Web
+    $ctx.Load($objWeb)
 
-    $objCred = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($global:cstrUserName, $strPassword)
-
-    $objCtx = New-Object Microsoft.SharePoint.Client.ClientContext($WebUrl);
-    $objCtx.Credentials = $objCred;
-
-    $objSite = $objCtx.Site;
-    $objCtx.Load($objSite);
-    $objCtx.ExecuteQuery();
-
-    $objWeb = $objCtx.Web
-    $objCtx.Load($objWeb)
-
-    $objList = $objCtx.Web.Lists.GetByTitle($ListTitle)
+    $objList = $ctx.Web.Lists.GetByTitle($ListTitle)
     $fields = $objList.Fields
-    $objCtx.Load($fields)
-    $objCtx.ExecuteQuery()
+    $ctx.Load($fields)
+    $ctx.ExecuteQuery()
 
     $ret = $fields | where { ($_.FromBaseType -eq $false) -or ($_.InternalName -eq "Title")} `
         | select InternalName,Title,TypeDisplayName,DefaultValue,Choices,ChoiceList,Required,Description
@@ -71,4 +62,4 @@ function Start-MailProcessing ($objCredentials) {
 }
 
 # エントリーポイント
-Start-MailProcessing
+Get-ColumnFields
