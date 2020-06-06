@@ -8,6 +8,7 @@ $password = "[pwd]"
 $secPassword = ConvertTo-SecureString $password -AsPlainText -Force
 $newPageFileName = "[Create page file name]"
 $NewsPageFileName = "/sites/testSite/SitePages/"+ $newPageFileName
+$originalSourceUrl = "/sites/testSite/SitePages/test11.aspx"
 
 function Load-DLLandAssemblies{
 	[string]$defaultDLLPath = ""
@@ -57,7 +58,7 @@ function Create-RepostPage{
 	$NewPageitem["Title"] = "test10"
 	$NewPageitem["ClientSideApplicationId"] = "b6917cb1-93a0-4b97-a84d-7cf49975d4ec"
 
-	$NewPageitem["_OriginalSourceUrl"] =  "/sites/testSite/SitePages"
+	$NewPageitem["_OriginalSourceUrl"] =  $originalSourceUrl
 	$NewPageitem["Editor"] = $MyEditoruserAccount.Id
 	$NewPageitem["Author"] = $MyEditoruserAccount.Id
 	$NewPageitem["Description"] = "コマンドでの実装テスト"
