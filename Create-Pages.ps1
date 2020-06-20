@@ -27,14 +27,14 @@ function Create-Pages(){
 
 
     $page = Add-PnPClientSidePage -Name $pageName -LayoutType $layoutType -PromoteAs $promoteAs
-    if(!($csv.PageType -eq "")){
-        if(!($csv.AnnounceCategory -eq "")){
-        Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"PageType"=$csv.PageType; "AnnounceCategory"=$csv.AnnounceCategory}
+    if(!($csv.Property1 -eq "")){
+        if(!($csv.Property2 -eq "")){
+        Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"Property1"=$csv.Property1; "Property2"=$csv.Property2}
         }else{
-            Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"PageType"=$csv.PageType}
+            Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"Property1"=$csv.Property1}
         }
-    }elseif(!($csv.AnnounceCategory -eq "")){
-        Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"AnnounceCategory"=$csv.AnnounceCategory}
+    }elseif(!($csv.Property2 -eq "")){
+        Set-PnPListItem -List "サイトのページ" -Identity $page.PageListItem.Id -Values @{"Property2"=$csv.Property2}
     }
     
     if(!($csv.Thumbnail -eq "")){
